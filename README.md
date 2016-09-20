@@ -2,7 +2,7 @@
 
 GitHub repository for the navigation for the Shark Detection code.
 
-See `Quantification of shark collective behaviour.docx` for further details about the code.
+See **Quantification of shark collective behaviour.docx** for further details about the code.
 
 # Authors and Contributors
 
