@@ -2,7 +2,11 @@
 
 GitHub repository for the navigation for the Shark Detection code.
 
-See Quantification of shark collective behaviour.docx for further details about the code.
+See `Quantification of shark collective behaviour.docx` for further details about the code.
+
+# Authors and Contributors
+
+Shark Detection toolbox was designed and developed by [José Carlos Catillo](https://github.com/jccmontoya) (developer, maintainer).
 
 
 ## LICENSE
