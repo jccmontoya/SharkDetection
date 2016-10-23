@@ -6,7 +6,7 @@ See **Quantification of shark collective behaviour.docx** for further details ab
 
 # Authors and Contributors
 
-Shark Detection toolbox was designed and developed by [José Carlos Catillo](https://github.com/jccmontoya) (developer, maintainer).
+Shark Detection toolbox was designed and developed by [José Carlos Castillo](https://github.com/jccmontoya) (developer, maintainer).
 
 
 ## LICENSE
