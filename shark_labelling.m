@@ -16,7 +16,7 @@
 close all
 %clear all
 
-image_path = 'vlcsnap-2016-03-01-11h45m33s558.png';
+image_path = 'DSC_4622.JPG';
 save_info_path = [image_path, '_labelled.mat'];%'labelled_sharks3';
 
 shark_img = imread(image_path);

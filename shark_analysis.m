@@ -1,7 +1,11 @@
+
+
+
+
 clear all
 close all
 
-data_path = 'vlcsnap-2016-03-01-11h45m33s558.png_labelled.mat';
+data_path = 'DSC_4622.JPG_labelled.mat';
 
 load(data_path);
 % 
