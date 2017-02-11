@@ -58,7 +58,7 @@ while end_labelling
     [n_points,~] = size(shark_pose);
     
     if(n_points< 2)
-        buttons
+        
         if(n_points>0 && buttons(end)==98) % letters B or b, retry
             if(old_cell_row == 1)
                 I = imcrop(shark_crop,[1,1 offset,offset]);
@@ -67,8 +67,8 @@ while end_labelling
             end
         else
             old_cell_row = cell_row;
-            old_cell_col  = cell_col;
-            [I,cell_row,cell_col] = getSubImage(shark_crop,cell_row,cell_col,offset);
+            old_cell_col  = cell_col;      
+            [I,cell_row,cell_col] = getSubImage(shark_crop,cell_row,cell_col,offset);            
             sharks_labeled = [sharks_labeled ; sharks_labeled_temp];
             if(I==0)
                 break; % End of image reached
