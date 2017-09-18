@@ -22,7 +22,7 @@ function varargout = shark_gui(varargin)
 
 % Edit the above text to modify the response to help shark_gui
 
-% Last Modified by GUIDE v2.5 07-Aug-2017 15:45:11
+% Last Modified by GUIDE v2.5 07-Aug-2017 19:06:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -62,6 +62,10 @@ guidata(hObject, handles);
 % uiwait(handles.figure1);
 
 initializeImage(handles)
+data(1,:)={[],[],[],[]};
+set(handles.uitable1,'data',data);
+set(handles.text2, 'String', '');
+
 
 function initializeImage(handles)
 img = imread('test.jpg');
@@ -134,26 +138,38 @@ txt=''; % Override the display of the clicked point
     check_point(handles, pointPosition(1), pointPosition(2));
     
 function check_point(handles, point_x, point_y)
-    % if the point is at the default position, skip it
+    % if the point is at the default (initial) position, skip it
     if not(point_x == 1 & point_y == (handles.img.YLim(2) - handles.img.YLim(1)))
         % if the current point is the same as the last one, skip it
         last_point = getLastPoint;
-        if ((point_x - last_point(1))^2 + (point_y - last_point(2))^2)
+        if ((point_x - last_point(1))^2 + (point_y - last_point(2))^2) > 100 %Threshold to prevent drag
             disp([point_x, point_y]);
             setLastPoint([point_x,point_y]);
             if getHeadTailIterator == 0 % Time to label the tail
                 setHeadTailIterator(1);
                 setTail([point_x, point_x]);
+                set(handles.text2, 'String', 'Label head');
+
             else
+                set(handles.text2, 'String', 'Label tail');
                 setHeadTailIterator(0);
-                setHead([point_x, point_x]);
+                setHead([point_x, point_y]);
                 %set(0,'CurrentFigure',handles.figure1);
              %   set(handles.figure1,'CurrentAxes',handles.axes1);
                 %cf = get(0,'CurrentFigure');
                % ca = get(gcf,'CurrentAxes');
                figure(handles.figure1);
                % hold off;
-                quiver(100, 100, 200, 200);
+               old_point = getTail;
+               quiver(100,100,200,200);
+               data=get(handles.uitable1, 'data'); 
+               a = data(1,1);
+               if isempty(a{1})
+                    data(1,:)={old_point(1), old_point(2), point_x, point_y};
+               else
+                    data(end+1,:)={old_point(1), old_point(2), point_x, point_y};
+               end
+               set(handles.uitable1,'data',data);
             end
         end
     end
@@ -168,54 +184,6 @@ function varargout = shark_gui_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
-
-
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-
-% --- Executes on slider movement.
-function slider1_Callback(hObject, eventdata, handles)
-% hObject    handle to slider1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
-function slider1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --------------------------------------------------------------------
-function cursor_ClickedCallback(hObject, eventdata, handles)
-% hObject    handle to cursor (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-disp(eventdata);
-
-
-% --- Executes on mouse press over axes background.
-function img_ButtonDownFcn(hObject, eventdata, handles)
-% hObject    handle to img (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-disp(eventdata.IntersectionPoint);
 
 
 % --------------------------------------------------------------------
@@ -239,3 +207,78 @@ function save_labelled_info_Callback(hObject, eventdata, handles)
 % hObject    handle to save_labelled_info (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object creation, after setting all properties.
+function img_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to img (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate img
+
+
+% --------------------------------------------------------------------
+function uitoggletool5_OffCallback(hObject, eventdata, handles)
+% hObject    handle to uitoggletool5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+setHeadTailIterator(0); % Reset labelling (next point belongs to tail)
+set(handles.text2, 'String', 'Labelling off');
+
+
+% --------------------------------------------------------------------
+function uitoggletool5_OnCallback(hObject, eventdata, handles)
+% hObject    handle to uitoggletool5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+setHeadTailIterator(0); % Reset labelling (next point belongs to tail)
+set(handles.text2, 'String', 'Label tail');
+
+
+% --------------------------------------------------------------------
+function zoom_in_OnCallback(hObject, eventdata, handles)
+% hObject    handle to zoom_in (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.text2, 'String', 'Zoom in');
+
+
+% --------------------------------------------------------------------
+function zoom_out_OnCallback(hObject, eventdata, handles)
+% hObject    handle to zoom_out (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.text2, 'String', 'Zoom out');
+
+
+% --------------------------------------------------------------------
+function pan_OnCallback(hObject, eventdata, handles)
+% hObject    handle to pan (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.text2, 'String', 'Free move');
+
+
+% --------------------------------------------------------------------
+function zoom_in_OffCallback(hObject, eventdata, handles)
+% hObject    handle to zoom_in (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.text2, 'String', '');
+
+
+% --------------------------------------------------------------------
+function zoom_out_OffCallback(hObject, eventdata, handles)
+% hObject    handle to zoom_out (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.text2, 'String', '');
+
+
+% --------------------------------------------------------------------
+function pan_OffCallback(hObject, eventdata, handles)
+% hObject    handle to pan (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.text2, 'String', '');
