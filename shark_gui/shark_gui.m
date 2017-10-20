@@ -68,7 +68,7 @@ set(handles.text2, 'String', '');
 
 
 function initializeImage(handles)
-img = imread('test.jpg');
+img = imread('test.JPG');
 himg = imshow(img,'Parent',handles.img);
 dcm_obj = datacursormode(handles.figure1);
 set(dcm_obj,'UpdateFcn',@myDatatipUpdateFcn);
@@ -158,10 +158,14 @@ function check_point(handles, point_x, point_y)
              %   set(handles.figure1,'CurrentAxes',handles.axes1);
                 %cf = get(0,'CurrentFigure');
                % ca = get(gcf,'CurrentAxes');
+               %hold on;
                figure(handles.figure1);
+               %hold on;
                % hold off;
                old_point = getTail;
-               quiver(100,100,200,200);
+               hold(handles.img,'on');
+               scatter(handles.img,100,200);%,'-ko','MarkerSize',12);
+               %quiver(100,100,200,200);
                data=get(handles.uitable1, 'data'); 
                a = data(1,1);
                if isempty(a{1})
