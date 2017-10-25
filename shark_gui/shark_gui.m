@@ -79,7 +79,14 @@ setLastPoint([0,0]);
 setHeadTailIterator(0); % The first labelled position corresponds to the tail
                         % 0 = label tail; 1 = label head 
 setHandle(handles);
+setImage(img);
 
+function setImage(i)
+global img
+img = i;
+
+function r = getImage
+r = img;
                         
 function setHandle(f)
 global handle
@@ -147,25 +154,24 @@ function check_point(handles, point_x, point_y)
             setLastPoint([point_x,point_y]);
             if getHeadTailIterator == 0 % Time to label the tail
                 setHeadTailIterator(1);
-                setTail([point_x, point_x]);
+                setTail([point_x, point_y]);
                 set(handles.text2, 'String', 'Label head');
 
             else
                 set(handles.text2, 'String', 'Label tail');
                 setHeadTailIterator(0);
                 setHead([point_x, point_y]);
-                %set(0,'CurrentFigure',handles.figure1);
-             %   set(handles.figure1,'CurrentAxes',handles.axes1);
-                %cf = get(0,'CurrentFigure');
-               % ca = get(gcf,'CurrentAxes');
-               %hold on;
-               figure(handles.figure1);
-               %hold on;
-               % hold off;
+
                old_point = getTail;
-               hold(handles.img,'on');
-               scatter(handles.img,100,200);%,'-ko','MarkerSize',12);
-               %quiver(100,100,200,200);
+               hold(handles.img,'on')
+               try
+               % Init x init y end x end y
+               plot(handles.img,[point_x, old_point(1)], [point_y, old_point(2)]);
+               catch 
+               end
+
+               hold(handles.img,'off');
+             
                data=get(handles.uitable1, 'data'); 
                a = data(1,1);
                if isempty(a{1})
