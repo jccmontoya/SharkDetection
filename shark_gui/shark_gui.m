@@ -22,7 +22,7 @@ function varargout = shark_gui(varargin)
 
 % Edit the above text to modify the response to help shark_gui
 
-% Last Modified by GUIDE v2.5 07-Aug-2017 19:06:19
+% Last Modified by GUIDE v2.5 25-Oct-2017 20:09:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,9 +66,15 @@ data(1,:)={[],[],[],[]};
 set(handles.uitable1,'data',data);
 set(handles.text2, 'String', '');
 
+%Initialize output data
+global sharks_labeled
+sharks_labeled = 0;
+
 
 function initializeImage(handles)
-img = imread('test.JPG');
+global image_name 
+image_name = 'test.JPG';
+img = imread(image_name);
 himg = imshow(img,'Parent',handles.img);
 dcm_obj = datacursormode(handles.figure1);
 set(dcm_obj,'UpdateFcn',@myDatatipUpdateFcn);
@@ -127,6 +133,8 @@ function r = getTail
 global tail_position
 r = tail_position;
 
+
+
 function txt = myDatatipUpdateFcn(hobj, event_obj)
 
    handles = guidata( event_obj.Target ) ;  %// retrieve the collection of GUI graphic object handles
@@ -180,10 +188,26 @@ function check_point(handles, point_x, point_y)
                     data(end+1,:)={old_point(1), old_point(2), point_x, point_y};
                end
                set(handles.uitable1,'data',data);
+               add_labelled_data([old_point(1), old_point(2)], [point_x, point_y]);
             end
         end
     end
-
+    
+    
+ function add_labelled_data(tail,head)
+     global sharks_labeled
+   % sharks_labelled = getLabelledData;
+    % Get center and magnitude of vector
+    [x,y,u,v] = getVector(tail,head);
+    
+    if sharks_labeled == 0
+        sharks_labeled =  [tail, head, x,y,u,v];
+    else  
+        sharks_labeled = [sharks_labeled ; [tail, head, x,y,u,v]];
+   
+        %setLabelledData(sharks_labelled);
+    end
+     
     
 % --- Outputs from this function are returned to the command line.
 function varargout = shark_gui_OutputFcn(hObject, eventdata, handles) 
@@ -205,11 +229,13 @@ function load_img_Callback(hObject, eventdata, handles)
 disp(FileName);
 disp(PathName);
 if(FileName)
+    cd(PathName);
+    global image_name
+    image_name = FileName;
     img = imread([PathName, FileName]);
     figure(handles.figure1);
     imshow(img,'Parent',handles.img);
 end
-
 
 
 % --------------------------------------------------------------------
@@ -217,6 +243,27 @@ function save_labelled_info_Callback(hObject, eventdata, handles)
 % hObject    handle to save_labelled_info (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+save_labelled_information();
+
+% --------------------------------------------------------------------
+function save_labelled_data_tooltip_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to save_labelled_data_tooltip (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+save_labelled_information();
+
+function save_labelled_information()
+    global sharks_labeled
+    global image_name
+    save_info_path = [image_name, '_labelled.mat'];
+    answer = 'Yes';
+    if exist(save_info_path,'file') == 2
+        answer = questdlg('The file you are trying to save already exists. Do you want to overwrite it?');
+    end
+    if strcmp(answer,'Yes')
+        save(save_info_path,'sharks_labeled','image_name');
+    end
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -229,8 +276,8 @@ function img_CreateFcn(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function uitoggletool5_OffCallback(hObject, eventdata, handles)
-% hObject    handle to uitoggletool5 (see GCBO)
+function select_OffCallback(hObject, eventdata, handles)
+% hObject    handle to select (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 setHeadTailIterator(0); % Reset labelling (next point belongs to tail)
@@ -238,8 +285,8 @@ set(handles.text2, 'String', 'Labelling off');
 
 
 % --------------------------------------------------------------------
-function uitoggletool5_OnCallback(hObject, eventdata, handles)
-% hObject    handle to uitoggletool5 (see GCBO)
+function select_OnCallback(hObject, eventdata, handles)
+% hObject    handle to select (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 setHeadTailIterator(0); % Reset labelling (next point belongs to tail)
@@ -292,3 +339,8 @@ function pan_OffCallback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(handles.text2, 'String', '');
+
+
+% --------------------------------------------------------------------
+
+
