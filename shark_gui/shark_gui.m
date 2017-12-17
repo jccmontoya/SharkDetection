@@ -93,8 +93,7 @@ setImage(img);
 global save_info_path
 save_info_path = '';
 
-
-
+%% Functions to access global variables
 function setImage(i)
 global img
 img = i;
@@ -142,7 +141,7 @@ global tail_position
 r = tail_position;
 
 
-
+%% Callbacks and othter functions
 function txt = myDatatipUpdateFcn(hobj, event_obj)
 
 handles = guidata( event_obj.Target ) ;  %// retrieve the collection of GUI graphic object handles
