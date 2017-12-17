@@ -22,7 +22,7 @@ function varargout = shark_gui(varargin)
 
 % Edit the above text to modify the response to help shark_gui
 
-% Last Modified by GUIDE v2.5 17-Dec-2017 12:58:19
+% Last Modified by GUIDE v2.5 17-Dec-2017 18:47:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -69,6 +69,10 @@ set(handles.text2, 'String', '');
 %Initialize output data
 global sharks_labeled
 sharks_labeled = 0;
+global save_time
+save_time = now;
+global label_time 
+label_time = save_time;
 
 
 function initializeImage(handles)
@@ -155,6 +159,8 @@ setappdata(handles.figure1 , 'pointPosition' , pointPosition )
 %     disp(txt);
 txt=''; % Override the display of the clicked point
 check_point(handles, pointPosition(1), pointPosition(2));
+global label_time
+label_time = now;
 
 function check_point(handles, point_x, point_y)
 % if the point is at the default (initial) position, skip it
@@ -164,6 +170,7 @@ if not(point_x == 1 & point_y == (handles.img.YLim(2) - handles.img.YLim(1)))
     if ((point_x - last_point(1))^2 + (point_y - last_point(2))^2) > 100 %Threshold to prevent dragging
         disp([point_x, point_y]);
         setLastPoint([point_x,point_y]);
+        disp(getHeadTailIterator);
         if getHeadTailIterator == 0 % Go for the tail
             setHeadTailIterator(1);
             setTail([point_x, point_y]);
@@ -226,45 +233,92 @@ varargout{1} = handles.output;
 
 % --------------------------------------------------------------------
 function load_img_Callback(hObject, eventdata, handles)
-% hObject    handle to load_img (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-[FileName,PathName] = uigetfile({'*.png';'*.jpeg';'*.JPEG';'*.JPG';'*.jpg';'*.bmp'},'Select the image to label');
-disp(FileName);
-disp(PathName);
-if(FileName)
-    cd(PathName);
-    global shark_img
-    shark_img = FileName;
-    img = imread([PathName, FileName]);
-    figure(handles.figure1);
-    imshow(img,'Parent',handles.img);
-    global save_info_path
-    save_info_path = [shark_img, '_labelled.mat'];
-    if exist(save_info_path,'file') == 2
-        answer = questdlg('There is labelled information associated to this image. Do you want to load it?');
+    % hObject    handle to load_img (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+    [FileName,PathName] = uigetfile({'*.png';'*.jpeg';'*.JPEG';'*.JPG';'*.jpg';'*.bmp'},'Select the image to label');
+    disp(FileName);
+    disp(PathName);
+    if(FileName)
+        datacursormode off;
+        cd(PathName);
+        global shark_img
+        shark_img = FileName;
+        img = imread([PathName, FileName]);
+        figure(handles.figure1);
+        imshow(img,'Parent',handles.img);
+        global save_info_path
+        save_info_path = [shark_img, '_labelled.mat'];
+        
+        % Initialize labeling info
+        data(1,:)={[],[],[],[]};
+        set(handles.uitable1,'data',data);
+        global sharks_labeled
+        sharks_labeled = 0;
+        global save_time
+        save_time = now;
+        global label_time 
+        label_time = save_time;
+        
+        % Try to load existing labeling information
+        if exist(save_info_path,'file') == 2
+            answer = questdlg('There is labelled information associated to this image. Do you want to load it?');
+            if strcmp(answer,'Yes')
+                labeled_info_to_table(save_info_path,handles);
+            end
+        end
+
     end
-    if strcmp(answer,'Yes')
+
+function plot_labeled_saved_info(sharks_labeled,handles)
+    [rows ~] = size(sharks_labeled);
+    for i = [1:rows]
+        try
+            % Init x init y end x end y
+            plot(handles.img,[sharks_labeled(i,3), sharks_labeled(i,1)], [sharks_labeled(i,4), sharks_labeled(i,2)],'Color','k');
+        catch
+        end
+
+    end
+
+function labeled_info_to_table(save_info_path,handles)
+    try
         load(save_info_path);
+        [rows ~] = size(sharks_labeled);
+        hold(handles.img,'on')
+        
+        data(1,:) = {sharks_labeled(1,1),sharks_labeled(1,2),sharks_labeled(1,3),sharks_labeled(1,4)};
+        for i = [2:rows]
+            data(end+1,:) = {sharks_labeled(i,1),sharks_labeled(i,2),sharks_labeled(i,3),sharks_labeled(i,4)}; 
+        end
+        set(handles.uitable1,'data',data);
+        plot_labeled_saved_info(sharks_labeled,handles);
+    catch
+        sharks_labeled = 0;
+        data(1,:)={[],[],[],[]};
+        set(handles.uitable1,'data',data);
+        warningMessage = sprintf('There was a problem when loading information from previous labeling.');
+        uiwait(msgbox(warningMessage,'Warning','warn'));
     end
-end
+    
 
 
-% --------------------------------------------------------------------
-function save_labelled_info_Callback(hObject, eventdata, handles)
-% hObject    handle to save_labelled_info (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-save_labelled_information();
 
 % --------------------------------------------------------------------
-function save_labelled_data_tooltip_ClickedCallback(hObject, eventdata, handles)
-% hObject    handle to save_labelled_data_tooltip (see GCBO)
+function save_labeled_info_Callback(hObject, eventdata, handles)
+% hObject    handle to save_labeled_info (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-save_labelled_information();
+save_labeled_information();
 
-function save_labelled_information()
+% --------------------------------------------------------------------
+function save_labeled_data_tooltip_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to save_labeled_data_tooltip (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+save_labeled_information();
+
+function save_labeled_information()
 global sharks_labeled
 global shark_img
 global save_info_path
@@ -275,6 +329,8 @@ if exist(save_info_path,'file') == 2
 end
 if strcmp(answer,'Yes')
     save(save_info_path,'sharks_labeled','shark_img');
+    global save_time
+    save_time = now;
 end
 
 
@@ -351,7 +407,7 @@ function pan_OffCallback(hObject, eventdata, handles)
 % hObject    handle to pan (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(handles.text2, 'String', '');
+set(handles.text2,'String','');
 
 
 % --------------------------------------------------------------------
@@ -363,22 +419,31 @@ function analyze_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global save_info_path
-if save_info_path == ''
-    warningMessage = sprintf('Labelling information not saved');
+global save_time
+global label_time 
+if label_time > save_time
+    warningMessage = sprintf('Labelling information not saved yet.\nPlease, save the data before trying the analysis feature.');
     uiwait(msgbox(warningMessage,'Warning','warn'));
-    
 else
     shark_analysis_4_gui(save_info_path)
 end
 
 
 % --------------------------------------------------------------------
-function Untitled_1_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_1 (see GCBO)
+function reset_Callback(hObject, eventdata, handles)
+% hObject    handle to reset (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+datacursormode off;
+initializeImage(handles);
 data(1,:)={[],[],[],[]};
 set(handles.uitable1,'data',data);
-initializeImage(handles);
-global head_tail_iterator
-head_tail_iterator=0;
+set(handles.text2, 'String', '');
+
+%Initialize output data
+global sharks_labeled
+sharks_labeled = 0;
+global save_time
+save_time = now;
+global label_time 
+label_time = save_time;

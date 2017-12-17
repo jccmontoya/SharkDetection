@@ -67,13 +67,13 @@ catch
     return
 end
 hold on; axis equal; axis tight;
-shark_index = find(sharks_labeled(:,10)<=average_size*2)
+shark_index = find(sharks_labeled(:,10)<=average_size*2);
 
 shark_center_x = sharks_labeled(shark_index,5);
 shark_center_y = sharks_labeled(shark_index,6);
 plot(shark_center_x,shark_center_y,'r*');
 
-shark_index = find(sharks_labeled(:,10)>average_size*2)
+shark_index = find(sharks_labeled(:,10)>average_size*2);
 shark_center_x = sharks_labeled(shark_index,5);
 shark_center_y = sharks_labeled(shark_index,6);
 plot(shark_center_x,shark_center_y,'b*');
@@ -102,7 +102,7 @@ xlswrite([save_info_path, '.analyzed.xls'],  sharks_labeled);
 
 print([save_info_path, '.analyzed.png'],'-dpng');
 
-warningMessage = sprintf('Info: Analysis complete. Information stored in:\n%s\n%s\n',[save_info_path, '.analyzed.xls'],[save_info_path, '.analyzed.png']);
+warningMessage = sprintf('Analysis complete...\nInformation stored in:\n%s\n%s\n',[save_info_path, '.analyzed.xls'],[save_info_path, '.analyzed.png']);
 uiwait(msgbox(warningMessage,'Analysis successful','help'));
 
 
