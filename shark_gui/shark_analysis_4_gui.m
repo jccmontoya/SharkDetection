@@ -1,13 +1,17 @@
-
-
-
-
-clear all
+function shark_analysis_4_gui(save_info_path)
+%clear all
 close all
 
-data_path = 'test.JPG_labelled.mat';
+%save_info_path = 'test.JPG_labelled.mat';
 
-load(data_path);
+try
+    load(save_info_path);
+catch
+    warningMessage = sprintf('File not found in current folder:\n%s\n', save_info_path);
+    uiwait(msgbox(warningMessage,'Error','error'));
+    return
+end
+
 
 % 
 % % sharks_labeled variable contains 8 fields:
@@ -59,7 +63,7 @@ try
     imshow(shark_img); 
 catch
     warningMessage = sprintf('Warning: file does not exist:\n%s\nCheck that the image and the corresponding .mat file are stored in the same folder', shark_img);
-    uiwait(msgbox(warningMessage));
+    uiwait(msgbox(warningMessage,'Error','error'));
     return
 end
 hold on; axis equal; axis tight;
@@ -67,12 +71,12 @@ shark_index = find(sharks_labeled(:,10)<=average_size*2)
 
 shark_center_x = sharks_labeled(shark_index,5);
 shark_center_y = sharks_labeled(shark_index,6);
-plot(shark_center_x+rect(1),shark_center_y+rect(2),'r*');
+plot(shark_center_x,shark_center_y,'r*');
 
 shark_index = find(sharks_labeled(:,10)>average_size*2)
 shark_center_x = sharks_labeled(shark_index,5);
 shark_center_y = sharks_labeled(shark_index,6);
-plot(shark_center_x+rect(1),shark_center_y+rect(2),'b*');
+plot(shark_center_x,shark_center_y,'b*');
 
 %% Plot sharks accorging to alignment to nearest neighbour
 
@@ -83,17 +87,23 @@ shark_center_x = sharks_labeled(shark_index,5);
 shark_center_y = sharks_labeled(shark_index,6);
 shark_center_u = sharks_labeled(shark_index,7);
 shark_center_v = sharks_labeled(shark_index,8);
-quiver(shark_center_x+rect(1),shark_center_y+rect(2),shark_center_v,shark_center_u,'r');
+quiver(shark_center_x,shark_center_y,shark_center_v,shark_center_u,'r');
 
 shark_index = find(sharks_labeled(:,11)>median(angles));
 shark_center_x = sharks_labeled(shark_index,5);
 shark_center_y = sharks_labeled(shark_index,6);
 shark_center_u = sharks_labeled(shark_index,7);
 shark_center_v = sharks_labeled(shark_index,8);
-quiver(shark_center_x+rect(1),shark_center_y+rect(2),shark_center_v,shark_center_u,'b');
+quiver(shark_center_x,shark_center_y,shark_center_v,shark_center_u,'b');
 
 %% Save information
 
-xlswrite([data_path, '.analyzed.xls'],  sharks_labeled);
+xlswrite([save_info_path, '.analyzed.xls'],  sharks_labeled);
 
-print([data_path, '.analyzed.png'],'-dpng');
+print([save_info_path, '.analyzed.png'],'-dpng');
+
+warningMessage = sprintf('Info: Analysis complete. Information stored in:\n%s\n%s\n',[save_info_path, '.analyzed.xls'],[save_info_path, '.analyzed.png']);
+uiwait(msgbox(warningMessage,'Analysis successful','help'));
+
+
+end
