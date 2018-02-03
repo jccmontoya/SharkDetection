@@ -81,12 +81,12 @@ shark_img = 'test.JPG';
 img = imread(shark_img);
 himg = imshow(img,'Parent',handles.img);
 dcm_obj = datacursormode(handles.figure1);
-set(dcm_obj,'UpdateFcn',@myDatatipUpdateFcn);
+set(dcm_obj,'UpdateFcn',@myDatatipUpdateFcn,'DisplayStyle','window');
 dcm_obj.createDatatip(himg);
 
 % Initialize global variables
 setLastPoint([0,0]);
-setHeadTailIterator(0); % The first labelled position corresponds to the tail
+setHeadTailIterator(0); % The first labeled position corresponds to the tail
 % 0 = label tail; 1 = label head
 setHandle(handles);
 setImage(img);
@@ -152,11 +152,11 @@ setappdata(handles.figure1 , 'pointPosition' , pointPosition )
 
 %// now we've saved the position in the appdata, you can also display it
 %// on the datatip itself
-%     txt = {'Point to Compute: ';...
-%           ['X:',num2str(pointPosition(1))]; ...
-%           ['Y:',num2str(pointPosition(2))] } ;
-%     disp(txt);
-txt=''; % Override the display of the clicked point
+     txt = {'Point to Compute: ';...
+           ['X:',num2str(pointPosition(1))]; ...
+           ['Y:',num2str(pointPosition(2))] } ;
+     disp(txt);
+%txt=''; % Override the display of the clicked point
 check_point(handles, pointPosition(1), pointPosition(2));
 global label_time
 label_time = now;
@@ -169,13 +169,14 @@ if not(point_x == 1 & point_y == (handles.img.YLim(2) - handles.img.YLim(1)))
     if ((point_x - last_point(1))^2 + (point_y - last_point(2))^2) > 100 %Threshold to prevent dragging
         disp([point_x, point_y]);
         setLastPoint([point_x,point_y]);
-        disp(getHeadTailIterator);
-        if getHeadTailIterator == 0 % Go for the tail
+        if getHeadTailIterator == 0 
+            disp('Head next');
             setHeadTailIterator(1);
             setTail([point_x, point_y]);
             set(handles.text2, 'String', 'Label head');
             
         else
+            disp('Tail next');
             set(handles.text2, 'String', 'Label tail');
             setHeadTailIterator(0);
             setHead([point_x, point_y]);
@@ -198,13 +199,13 @@ if not(point_x == 1 & point_y == (handles.img.YLim(2) - handles.img.YLim(1)))
                 data(end+1,:)={old_point(1), old_point(2), point_x, point_y};
             end
             set(handles.uitable1,'data',data);
-            add_labelled_data([old_point(1), old_point(2)], [point_x, point_y]);
+            add_labeled_data([old_point(1), old_point(2)], [point_x, point_y]);
         end
     end
 end
 
 
-function add_labelled_data(tail,head)
+function add_labeled_data(tail,head)
 global sharks_labeled
 % sharks_labelled = getLabelledData;
 % Get center and magnitude of vector
@@ -217,6 +218,7 @@ else
     
     %setLabelledData(sharks_labelled);
 end
+disp(sharks_labeled);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -261,7 +263,7 @@ function load_img_Callback(hObject, eventdata, handles)
         
         % Try to load existing labeling information
         if exist(save_info_path,'file') == 2
-            answer = questdlg('There is labelled information associated to this image. Do you want to load it?');
+            answer = questdlg('There is labeled information associated to this image. Do you want to load it?');
             if strcmp(answer,'Yes')
                 labeled_info_to_table(save_info_path,handles);
             end
@@ -330,6 +332,8 @@ if strcmp(answer,'Yes')
     save(save_info_path,'sharks_labeled','shark_img');
     global save_time
     save_time = now;
+    warningMessage = sprintf('Information successfully saved');
+    uiwait(msgbox(warningMessage,'Success','modal'));
 end
 
 
